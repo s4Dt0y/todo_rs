@@ -30,13 +30,9 @@ fn main() {
                 .long("finish")
                 .short('f')
                 .help("Finish items")
-                .action(ArgAction::SetTrue)
+                .action(ArgAction::SetTrue),
         )
-        .arg(
-            Arg::new("values")
-                .help("Add or remove items. (Depending on what flags you put. Default is add.")
-                .action(ArgAction::Append),
-        )
+
         .get_matches();
 
     run(matches);

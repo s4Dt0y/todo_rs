@@ -1,9 +1,9 @@
 use clap::ArgMatches;
 use colored::Colorize;
 use std::collections::HashMap;
+use std::fs::File;
 use std::io::Write;
 use std::{fmt, fs};
-use std::fs::File;
 
 pub fn run(matches: ArgMatches) {
     let items = matches
@@ -24,8 +24,7 @@ pub fn run(matches: ArgMatches) {
         if let Err(e) = add_items(items) {
             eprintln!("Error: {}", e);
         }
-    }
-    else if matches.get_flag("finish") {
+    } else if matches.get_flag("finish") {
         if let Err(e) = finish_items(items) {
             eprintln!("Error: {}", e);
         }
@@ -95,23 +94,24 @@ fn finish_items(items: Vec<String>) -> Result<usize, Error> {
     };
     let mut file = match File::create("todo_rs.todo") {
         Ok(t) => t,
-        Err(_) => { return Err(Error::FileInaccessible); }
+        Err(_) => {
+            return Err(Error::FileInaccessible);
+        }
     };
 
-    let mut substring1: String;
-    let mut substring2: String;
+    let mut find: String;
+    let mut replace: String;
     for item in items {
-        substring1 = format!("{} false", item);
+        find = format!("{} false", item);
 
-        substring2 = format!("{} true", item);
+        replace = format!("{} true", item);
 
-        contents = contents.replace(&substring1, substring2.as_str());
+        contents = contents.replace(&find, replace.as_str());
 
         if let Err(e) = file.write(contents.as_bytes()) {
             println!("{e}");
             return Err(Error::WriteFailed);
         }
-
     }
 
     Ok(0)
@@ -152,16 +152,16 @@ enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self == &crate::Error::ParseError {
+        if self == &Error::ParseError {
             return write!(f, "Cannot parse todo_rs.todo");
-        } else if self == &crate::Error::FileInaccessible {
+        } else if self == &Error::FileInaccessible {
             return write!(f, "Cannot read todo_rs.todo. Perhaps it is not created?");
-        } else if self == &crate::Error::NoContent {
+        } else if self == &Error::NoContent {
             return write!(
                 f,
                 "No content in todo_rs.todo. Perhaps you have not added any items yet?"
             );
-        } else if self == &crate::Error::WriteFailed {
+        } else if self == &Error::WriteFailed {
             return write!(f, "Unable to write to todo_rs.todo.");
         }
 
